@@ -22,6 +22,7 @@ const markerElements = [...document.querySelectorAll('#markers > div')];
 
 /*----- event listeners -----*/
 document.getElementById('markers').addEventListener('click', handleDrop);
+playAgainBtn.addEventListener('click', init);
 
 
 /*----- functions -----*/
@@ -54,15 +55,63 @@ function handleDrop(evt) {
     colArr[rowIdx] = turn;
     turn *= -1; // switch player turn
     //console.log(colIdx, rowIdx);
-    winner = getWinner(); // Check for winner
+    winner = getWinner(colIdx, rowIdx); // Check for winner
 
     render();
 
 }
+
 //check for winner and make necessary updates
-function getWinner() {
+//return null if no winner, 1/-1 if a player has won, 'T' if tie
+function getWinner(colIdx, rowIdx) {
+    return checkVerticalWin(colIdx, rowIdx) ||
+    checkHorizontalWin(colIdx, rowIdx) ||
+    checkDiagonalWin(colIdx, rowIdx);
+}
+function checkVerticalWin(colIdx,rowIdx){
+    return countAdjacent(colIdx, rowIdx, 0, -1) === 3 ? board[colIdx][rowIdx]: null; 
+}
+
+function checkHorizontalWin(colIdx, rowIdx) {
+    const adjCountLeft = countAdjacent(colIdx, rowIdx, -1, 0);
+    const adjCountRight = countAdjacent(colIdx, rowIdx, 1, 0);
+    return (adjCountLeft + adjCountRight) >= 3 ? board[colIdx][rowIdx] : null;
 
 }
+
+function checkDiagonalWin(colIdx, rowIdx) {
+    const adjNW = countAdjacent(colIdx, rowIdx, -1, 1);
+    const adjNE = countAdjacent(colIdx, rowIdx, 1, 1);
+    const adjSW = countAdjacent(colIdx, rowIdx, -1, -1);
+    const adjSE = countAdjacent(colIdx, rowIdx, 1, -1);
+    return ((adjNW + adjSE) >= 3 || (adjNE + adjSW) >= 3) ? board[colIdx][rowIdx] : null;
+}
+
+
+
+function countAdjacent(colIdx, rowIdx, colOffset, rowOffset) {
+    // Shortcut variable to the player value
+    const player = board[colIdx][rowIdx];
+    //track count of adjacent cells with the same player value
+    let count = 0;
+    //initalize new coordinates
+    colIdx += colOffset;
+    rowIdx += rowOffset;
+    while(
+        // Ensure colIdx is within bounds of the board array
+        board[colIdx] !== undefined && board[colIdx][rowIdx] !== undefined &&
+        board[colIdx][rowIdx] === player
+        ) {
+            count++;
+            colIdx += colOffset;
+            rowIdx += rowOffset;
+    }
+
+    return count;
+
+}
+
+
 //Visualize all state in DOM
 function render() {
     renderBoard();
